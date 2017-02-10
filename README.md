@@ -6,4 +6,6 @@
   
        1. detects if a webpage contains some type of from or not !
   
-       2. detects if the given webpage contains a login form and what is the html id !
+       2. detects if the given webpage contains a login form and what is the html id and method it use!
+       
+       3. Also a csv file containing information about the login forms is also created ! 
