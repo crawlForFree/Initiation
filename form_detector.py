@@ -10,32 +10,36 @@ submit = set()
 login_list = ["login" , "LOGIN" , "LOG IN" , "Sign In", "SIGN IN" , "SIGNIN", 'Log In']
 
 
-def getloginid(html_data):
+def controlledId(expression, key):
+    pos = expression.find(key) + len(key)
+    while expression[pos] == ' ':
+        pos += 1
+    pos += 1
+    while expression[pos] == ' ':
+        pos += 1
+    id = ""
+    while pos < len(expression):
+        id += expression[pos]
+        pos += 1
+        if expression[pos] is '"' or expression[pos] is "'":
+            break
+
+    return id
+
+def getloginid(html_data, searchListing):
     startt = html_data.find('<form')
     endd = html_data.find('</form>')
     while True:
         if startt is -1:
             break
         temp = html_data[startt : endd + 7]
-        for worm in login_list:
+        for worm in searchListing:
             if worm in temp:
                 try:
                     x = temp.find(worm)
-                    pos  = temp.find(' id')+3
-                    while temp[pos] == ' ':
-                        pos+=1
-                    pos+=1
-                    while temp[pos] == ' ':
-                        pos += 1
-                    pos+=1
-                    id = ""
-                    while pos < len(temp):
-                        id += temp[pos]
-                        pos+=1
-                        if temp[pos] is '"' or temp[pos] is "'":
-                            break
+                    id =controlledId(temp,' id=')
+                    id += ', '+controlledId(temp,' method=');
                     return id
-
                 except:
                     pass
         matter=html_data[endd :]
@@ -61,9 +65,10 @@ for link in f:
             # check if its a login page!!
             if 'LOGIN' in upform or 'LOG IN' in upform or 'SIGNIN' in upform or 'SIGN IN' in upform:
                 if link not in login:
-                    id = getloginid(getTemplate)
+                    id = getloginid(getTemplate, login_list)
                     if id is None:
                         continue
+                    print(id)
                     login.add(link+id)
             # check if its a submission or online transactions form or submit comment
             elif 'SUBMIT' in upform:
