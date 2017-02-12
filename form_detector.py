@@ -2,19 +2,31 @@ import requests as re
 from bs4 import BeautifulSoup
 import urllib.request
 
-f = open("crawlled.txt", 'r')
+# file to fetch data from
+
+f = open("crawled.txt", 'r')
 forums = set()
 login = set()
 submit = set()
 signup = set()
 forgot_pass = set()
+search_forms = set()
+
 
 login_list = ['login', "LOGIN", "LOG IN", "Sign In", "SIGN IN", "SIGNIN", 'Log In']
-signup_list = ['REGISTER','register','signup', "SIGN UP", 'SIGNUP', 'Sign Up', 'SignUp' , 'Create Account','create account', 'CREATE ACCOUNT','createaccount' ]
+signup_list = ['Already have an account','REGISTER','register','signup', "SIGN UP", 'SIGNUP', 'Sign Up', 'SignUp' , 'Create Account','create account', 'CREATE ACCOUNT','createaccount' ]
+forgot_passwd = ['recover','Forgotten','Forgot','forgot','forgotten']
+search_keys = ['search','SEARCH','Search']
 
 
 def controlledId(expression, key):
-    pos = expression.find(key) + len(key)
+    try:
+        pos = expression.find(key)
+    except:
+        return None
+    if pos == -1:
+        return None
+    pos += len(key)
     while expression[pos] == ' ':
         pos += 1
     pos += 1
@@ -26,7 +38,6 @@ def controlledId(expression, key):
         pos += 1
         if expression[pos] is '"' or expression[pos] is "'":
             break
-
     return id
 
 def getloginid(html_data, searchListing):
@@ -39,7 +50,7 @@ def getloginid(html_data, searchListing):
         for worm in searchListing:
             if worm in temp:
                 try:
-                    x = temp.find(worm)
+                    x=temp.find(worm)
                     id =controlledId(temp,' id=')
                     id += ','+controlledId(temp,' method=')
                     return id
@@ -54,8 +65,6 @@ def getloginid(html_data, searchListing):
         endd = endd + 7 + matter.find('</form>')
 
 
-
-
 for link in f:
     link=link.split('\n')
     link=link[0]
@@ -66,7 +75,17 @@ for link in f:
         getTemplate = soup.prettify()
         upform = getTemplate.upper()
         if '</form>' in getTemplate and link not in forums:
+            # looking for a search page like google search page , yahoo , youtube etc . . ..
             forums.add(link)
+            for worm in search_keys:
+                if worm in getTemplate:
+                    if link not in search_forms:
+                        id = getloginid(getTemplate, search_keys)
+                        if id is None:
+                            continue
+                        print(id)
+                        search_forms.add(link + ',' + id)
+                    break
             # check if its a signup form
             for worm in signup_list:
                 if worm in getTemplate:
@@ -74,6 +93,7 @@ for link in f:
                         id = getloginid(getTemplate, signup_list)
                         if id is None:
                             continue
+                        print(id)
                         signup.add(link + ',' + id)
                     break
              # check if its a login page!!
@@ -82,7 +102,18 @@ for link in f:
                     id = getloginid(getTemplate, login_list)
                     if id is None:
                         continue
+                    print(id)
                     login.add(link + ',' + id)
+            # check if it is a forgot password form
+            for worm in forgot_passwd:
+                if worm in getTemplate:
+                    if link not in forgot_pass:
+                        id = getloginid(getTemplate, forgot_passwd)
+                        if id is None:
+                            continue
+                        print(id)
+                        forgot_pass.add(link + ',' + id)
+                    break
 
 
 
@@ -97,7 +128,7 @@ for link in forums:
     f.write(link+"\n")
 f.close()
 
-# Making a file containing login, signup forms
+# Making a file containing login, signup ,search forms
 # Appearance :
 #       URL  |   ID  |  METHOD
 f = open("login_forms.csv","w+")
@@ -109,5 +140,11 @@ f.close()
 f = open("signup_forms.csv","w+")
 f.write("URL,ID,METHOD\n")
 for links in signup:
+    f.write(links+"\n")
+f.close()
+
+f = open("search.csv","w+")
+f.write("URL,ID,METHOD\n")
+for links in search_forms:
     f.write(links+"\n")
 f.close()
