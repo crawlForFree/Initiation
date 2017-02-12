@@ -10,4 +10,4 @@
        
        3. Also a csv file containing information about the login forms is also created ! 
        
-       4. Now sign up form detection is added
+       4. Now sign up form + search page detection is added
