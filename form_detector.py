@@ -6,8 +6,11 @@ f = open("crawlled.txt", 'r')
 forums = set()
 login = set()
 submit = set()
+signup = set()
+forgot_pass = set()
 
-login_list = ["login" , "LOGIN" , "LOG IN" , "Sign In", "SIGN IN" , "SIGNIN", 'Log In']
+login_list = ['login', "LOGIN", "LOG IN", "Sign In", "SIGN IN", "SIGNIN", 'Log In']
+signup_list = ['REGISTER','register','signup', "SIGN UP", 'SIGNUP', 'Sign Up', 'SignUp' , 'Create Account','create account', 'CREATE ACCOUNT','createaccount' ]
 
 
 def controlledId(expression, key):
@@ -38,7 +41,7 @@ def getloginid(html_data, searchListing):
                 try:
                     x = temp.find(worm)
                     id =controlledId(temp,' id=')
-                    id += ', '+controlledId(temp,' method=');
+                    id += ','+controlledId(temp,' method=')
                     return id
                 except:
                     pass
@@ -54,6 +57,8 @@ def getloginid(html_data, searchListing):
 
 
 for link in f:
+    link=link.split('\n')
+    link=link[0]
     try:
         html_page = re.get(link)
         data = html_page.text
@@ -62,32 +67,47 @@ for link in f:
         upform = getTemplate.upper()
         if '</form>' in getTemplate and link not in forums:
             forums.add(link)
-            # check if its a login page!!
+            # check if its a signup form
+            for worm in signup_list:
+                if worm in getTemplate:
+                    if link not in signup:
+                        id = getloginid(getTemplate, signup_list)
+                        if id is None:
+                            continue
+                        signup.add(link + ',' + id)
+                    break
+             # check if its a login page!!
             if 'LOGIN' in upform or 'LOG IN' in upform or 'SIGNIN' in upform or 'SIGN IN' in upform:
                 if link not in login:
                     id = getloginid(getTemplate, login_list)
                     if id is None:
                         continue
-                    print(id)
-                    login.add(link+id)
-            # check if its a submission or online transactions form or submit comment
-            elif 'SUBMIT' in upform:
-                submit.add(link)
+                    login.add(link + ',' + id)
+
+
 
     except:
         pass
 
+
+
 f.close();
 f=open("forms_detected.txt", 'w+')
 for link in forums:
-    f.write(link)
+    f.write(link+"\n")
 f.close()
 
-# Making a file containing login forms
+# Making a file containing login, signup forms
 # Appearance :
-#       Line one will contain URL containing login form
-#       Line two will contain the HTML id of login form
-f = open("login_forms.txt","w+")
+#       URL  |   ID  |  METHOD
+f = open("login_forms.csv","w+")
+f.write("URL,ID,METHOD\n")
 for links in login:
+    f.write(links+"\n")
+f.close()
+
+f = open("signup_forms.csv","w+")
+f.write("URL,ID,METHOD\n")
+for links in signup:
     f.write(links+"\n")
 f.close()
