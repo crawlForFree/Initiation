@@ -9,3 +9,5 @@
        2. detects if the given webpage contains a login form and what is the html id and method it use!
        
        3. Also a csv file containing information about the login forms is also created ! 
+       
+       4. Now sign up form detection is added
